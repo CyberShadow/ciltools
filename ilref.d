@@ -47,6 +47,37 @@ static:
 		afterEdit(className ~ "::" ~ oldName ~ " -> " ~ newName);
 	}
 
+	@("Rename a field")
+	void renameField(string className, string oldName, string newName)
+	{
+		beforeEdit();
+
+		auto reCall = regex(`\b` ~ escapeRE(className ~ "::" ~ oldName) ~ `\b`);
+		auto reDecl = regex(`^(\s*\.field .*) ` ~ escapeRE(oldName) ~ `$`);
+		foreach (de; dirEntries("", "*.il", SpanMode.depth))
+		{
+			auto os = de.readText();
+			auto s = os;
+			s = s.replaceAll(reCall, className ~ "::" ~ newName);
+			if (de.baseName == className ~ ".class.il")
+			{
+				auto lines = s.splitLines();
+				bool inDecl;
+				foreach (ref l; lines)
+					l = l.replaceAll(reDecl, `$1 ` ~ newName);
+				s = lines.join("\n");
+			}
+			if (os != s)
+			{
+				stderr.writeln(de.name);
+				std.file.write(de.name, s);
+				spawnProcess(["git", "add", de.name]).wait();
+			}
+		}
+
+		afterEdit(className ~ "::" ~ oldName ~ " -> " ~ newName);
+	}
+
 	@("Rename a class")
 	void renameClass(string oldName, string newName)
 	{
