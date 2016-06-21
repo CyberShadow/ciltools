@@ -1,10 +1,10 @@
 import std.algorithm;
 import std.file;
 import std.path;
+import std.process;
 import std.regex;
 import std.stdio;
 import std.string;
-import std.process;
 
 import ae.utils.funopt;
 import ae.utils.main;
