@@ -20,7 +20,7 @@ static:
 
 	private void afterEdit(string commitMessage)
 	{
-		spawnProcess(["git", "commit", "-am", commitMessage]).wait();
+		spawnProcess(["git", "commit", "-m", commitMessage]).wait();
 	}
 
 	@("Rename a method")
@@ -40,10 +40,66 @@ static:
 			{
 				stderr.writeln(de.name);
 				std.file.write(de.name, s);
+				spawnProcess(["git", "add", de.name]).wait();
 			}
 		}
 
 		afterEdit(className ~ "::" ~ oldName ~ " -> " ~ newName);
+	}
+
+	@("Rename a class")
+	void renameClass(string oldName, string newName)
+	{
+		beforeEdit();
+
+		auto re1 = regex(`\bclass ` ~ escapeRE(oldName) ~ `\b`);
+		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `::`);
+		auto re3 = regex(`#include "` ~ escapeRE(oldName) ~ `.class.il"`);
+		auto reDecl = regex(`\b` ~ escapeRE(oldName) ~ `\b`);
+		foreach (de; dirEntries("", "*.il", SpanMode.depth))
+		{
+			auto fn = de.name;
+			auto os = de.readText();
+			auto s = os;
+			s = s.replaceAll(re1, "class " ~ newName);
+			s = s.replaceAll(re2, newName ~ "::");
+			s = s.replaceAll(re3, `#include "` ~ newName ~  `.class.il"`);
+
+			if (fn.baseName == oldName ~ ".class.il")
+			{
+				auto lines = s.splitLines();
+				bool inDecl;
+				foreach (ref l; lines)
+				{
+					if (l.strip().startsWith(".class "))
+						inDecl = true;
+					if (inDecl && l.match(reDecl))
+					{
+						l = l.replaceAll(reDecl, newName);
+						inDecl = false;
+					}
+				}
+				s = lines.join("\n");
+
+				remove(fn);
+				fn = fn.dirName.buildPath(newName ~ ".class.il");
+			}
+
+			if (os != s)
+			{
+				if (fn != de.name)
+				{
+					stderr.writeln(de.name, " -> ", fn);
+					spawnProcess(["git", "add", de.name]).wait();
+				}
+				else
+					stderr.writeln(fn);
+				std.file.write(fn, s);
+				spawnProcess(["git", "add", fn]).wait();
+			}
+		}
+
+		afterEdit(oldName ~ " -> " ~ newName);
 	}
 }
 
