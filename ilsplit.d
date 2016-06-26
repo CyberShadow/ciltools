@@ -85,7 +85,7 @@ void ilsplit(bool splitMethods, string ilFile)
 					{
 						auto name = declaration.findSplit("(")[0].split()[$-1];
 						scope(failure) stderr.writeln(declaration);
-						auto args = declaration.split("(")[$-1].findSplit(")")[0].splitEmpty(", ").map!(arg => arg.split()[$-2]);
+						auto args = declaration.split("(")[$-1].findSplit(")")[0].splitEmpty(", ").map!(arg => arg.split()[$-2].split(".")[$-1]);
 						name ~= "(" ~ args.join(",") ~ ")";
 						pushFile(name, "method", indent);
 					}
