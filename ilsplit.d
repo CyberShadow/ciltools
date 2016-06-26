@@ -1,5 +1,6 @@
 import std.algorithm;
 import std.array;
+import std.exception;
 import std.file;
 import std.path;
 import std.stdio;
@@ -11,23 +12,28 @@ import ae.utils.main;
 
 void ilsplit(bool splitMethods, string ilFile)
 {
-	static struct IncludeFile { File f; int indent; }
+	static struct IncludeFile { File f; string name; int indent; }
 
 	IncludeFile[] stack;
-	void pushFile(string fn, int indent = -1)
+	void pushFile(string name, string type, int indent = -1)
 	{
+		auto fn = name ~ "." ~ type ~ ".il";
 		if (indent != -1)
 		{
-			stack[$-1].f.writeln(`#include "` ~ fn ~ `"`);
+			stack[$-1].f.writeln(`#include "` ~ (stack.length ? stack[$-1].name ~ "/" : "") ~ fn ~ `"`);
 			stack[$-1].f.flush();
 		}
 		stderr.writeln(fn);
-		auto path = ilFile.dirName.buildPath(fn);
+		auto path = ilFile.dirName;
+		foreach (f; stack)
+			path = path.buildPath(f.name);
+		path = path.buildPath(fn);
 		ensurePathExists(path);
-		stack ~= IncludeFile(File(path, "wb"), indent);
+		enforce(!path.exists, "File already exists: "~ path);
+		stack ~= IncludeFile(File(path, "wb"), name, indent);
 	}
 
-	pushFile(ilFile.setExtension(".main.il"));
+	pushFile(ilFile.baseName.stripExtension(), "main");
 
 	auto lines = readText(ilFile).split("\r\n");
 
@@ -71,14 +77,14 @@ void ilsplit(bool splitMethods, string ilFile)
 					auto name = declaration.findSplit(" extends ")[0].findSplit("<")[0].split()[$-1];
 					// static const keywords = "public auto ansi sealed beforefieldinit".split();
 					// while (keywords.any!(keyword => l.skipOver(keyword ~ " "))) {}
-					pushFile(name ~ ".class.il", indent);
+					pushFile(name, "class", indent);
 					break;
 				}
 				case ".method":
 					if (splitMethods)
 					{
 						auto name = declaration.findSplit("(")[0].split()[$-1];
-						pushFile(name ~ ".class.il", indent);
+						pushFile(name, "method", indent);
 					}
 					break;
 				default:
