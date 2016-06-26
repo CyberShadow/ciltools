@@ -3,10 +3,12 @@ import std.array;
 import std.exception;
 import std.file;
 import std.path;
+import std.range;
 import std.stdio;
 import std.string;
 
 import ae.sys.file;
+import ae.utils.array;
 import ae.utils.funopt;
 import ae.utils.main;
 
@@ -82,6 +84,9 @@ void ilsplit(bool splitMethods, string ilFile)
 					if (splitMethods)
 					{
 						auto name = declaration.findSplit("(")[0].split()[$-1];
+						scope(failure) stderr.writeln(declaration);
+						auto args = declaration.split("(")[$-1].findSplit(")")[0].splitEmpty(", ").map!(arg => arg.split()[$-2]);
+						name ~= "(" ~ args.join(",") ~ ")";
 						pushFile(name, "method", indent);
 					}
 					break;
