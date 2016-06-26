@@ -9,13 +9,14 @@ import std.stdio;
 import std.string;
 
 import ae.sys.file;
+import ae.utils.array;
 import ae.utils.funopt;
 import ae.utils.main;
 import ae.utils.path;
 
 void csstub(string inputDir, string outputDir)
 {
-	foreach (de; dirEntries(inputDir, SpanMode.depth))
+	foreach (de; dirEntries(inputDir, SpanMode.breadth))
 	{
 		stderr.writeln(de.name);
 		auto target = de.name.rebasePath(inputDir, outputDir);
@@ -47,33 +48,37 @@ void csstub(string inputDir, string outputDir)
 						}
 					}
 					else
-					if (declStart)
-						declStart = false;
+					if (s.skipOver("where "))
+						continue; // Keep declStart value for this line
 					else
 					{
+						declStart = false;
+
 						static immutable attributes = ["public", "private", "internal", "static", "sealed"];
 						while (attributes.any!(attr => s.skipOver(attr ~ " "))) {}
-						static immutable aggregates = ["class", "enum"];
-						if (attributes.any!(attr => s.startsWith(attr ~ " ")))
+						static immutable aggregates = ["class", "struct", "enum"];
+						if (!aggregates.any!(aggr => s.startsWith(aggr ~ " ")) && s.endsWith(")"))
+							declStart = true;
+						else
+						if (s.isOneOf("get", "set"))
 							declStart = true;
 					}
 				}
 				else
 				{
-					output.writeln(line);
-
 					if (s == "}" && indent == skipIndent)
 					{
 						output.writeln("\t".replicate(indent), "#endif");
-						output.writeln("\t".replicate(indent), "throw null;");
+						output.writeln("\t".replicate(indent), "\tthrow null;");
 						skipping = false;
 					}
+
+					output.writeln(line);
 				}
 			}
-			// ...
 		}
 		else
-			copy(de.name, target);
+			std.file.write(target, std.file.read(de.name));
 	}
 }
 
