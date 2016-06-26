@@ -83,13 +83,19 @@ void ilsplit(bool splitMethods, string ilFile)
 				case ".method":
 					if (splitMethods)
 					{
-						auto name = declaration.findSplit("(")[0].split()[$-1];
+						auto name = declaration
+							.findSplit("(")[0]
+							.replace("<", "(")
+							.replace(">", ")")
+							.split()[$-1]
+						;
 						scope(failure) stderr.writeln(declaration);
 						auto args = declaration
 							.split("(")[$-1]
 							.findSplit(")")[0]
 							.splitEmpty(", ")
 							.map!(arg => arg
+							      .findSplit("<")[0]
 							      .split()[$-2]
 							      .split(".")[$-1]
 							);
