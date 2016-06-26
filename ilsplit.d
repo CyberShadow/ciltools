@@ -23,13 +23,11 @@ void ilsplit(bool splitMethods, string ilFile)
 			stack[$-1].f.writeln(`#include "` ~ (stack.length ? stack[$-1].name ~ "/" : "") ~ fn ~ `"`);
 			stack[$-1].f.flush();
 		}
-		stderr.writeln(fn);
-		auto path = ilFile.dirName;
-		foreach (f; stack)
-			path = path.buildPath(f.name);
-		path = path.buildPath(fn);
+		auto path = buildPath(stack.map!(f => f.name).chain(fn.only));
+		stderr.writeln(path);
+		path = ilFile.dirName.buildPath(path);
 		ensurePathExists(path);
-		enforce(!path.exists, "File already exists: "~ path);
+		enforce(!path.exists, "File already exists: " ~ path);
 		stack ~= IncludeFile(File(path, "wb"), name, indent);
 	}
 
