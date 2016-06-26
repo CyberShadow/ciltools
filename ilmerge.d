@@ -1,3 +1,8 @@
+// Simple preprocessor for #include directives.
+// ilasm already supports #include, but its handling of relative paths is broken -
+// it always looks relative to the current / main file directory, not relative to
+// the current #include-d file.
+
 import std.algorithm;
 import std.path;
 import std.stdio;
