@@ -14,10 +14,13 @@ import ae.utils.main;
 void ilmerge(string ilFile)
 {
 	foreach (l; File(ilFile, "rb").byLine())
-		if (l.startsWith(`#include `))
-			ilmerge(ilFile.dirName.buildPath(l.split('"')[1]));
+	{
+		auto s = l.strip();
+		if (s.startsWith(`#include `))
+			ilmerge(ilFile.dirName.buildPath(s.split('"')[1]));
 		else
 			writeln(l);
+	}
 }
 
 mixin main!(funopt!ilmerge);
