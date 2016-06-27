@@ -29,7 +29,7 @@ static:
 		beforeEdit();
 
 		auto reCall = regex(`\b` ~ escapeRE(className ~ "::" ~ oldName) ~ `\b`);
-		foreach (de; dirEntries("", "*.il", SpanMode.depth))
+		foreach (de; dirEntries("", "*.il", SpanMode.shallow))
 		{
 			auto os = de.readText();
 			auto s = os;
@@ -54,7 +54,7 @@ static:
 
 		auto reCall = regex(`\b` ~ escapeRE(className ~ "::" ~ oldName) ~ `\b`);
 		auto reDecl = regex(`^(\s*\.field .*) ` ~ escapeRE(oldName) ~ `$`);
-		foreach (de; dirEntries("", "*.il", SpanMode.depth))
+		foreach (de; dirEntries("", "*.il", SpanMode.shallow))
 		{
 			auto os = de.readText();
 			auto s = os;
@@ -87,7 +87,7 @@ static:
 		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `::`);
 		auto re3 = regex(`#include "` ~ escapeRE(oldName) ~ `.class.il"`);
 		auto reDecl = regex(`\b` ~ escapeRE(oldName) ~ `\b`);
-		foreach (de; dirEntries("", "*.il", SpanMode.depth))
+		foreach (de; dirEntries("", "*.il", SpanMode.shallow))
 		{
 			auto fn = de.name;
 			auto os = de.readText();
