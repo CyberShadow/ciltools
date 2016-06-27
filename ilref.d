@@ -93,7 +93,7 @@ static:
 		beforeEdit();
 
 		auto re1 = regex(`\bclass ` ~ escapeRE(oldName) ~ `\b`);
-		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `::`);
+		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `(::|/)`);
 		auto re3 = regex(`#include "` ~ escapeRE(oldName) ~ `.class.il"`);
 		auto reDecl = regex(`\b` ~ escapeRE(oldName) ~ `\b`);
 		foreach (fn; fileList())
@@ -102,7 +102,7 @@ static:
 			auto os = fn.readText();
 			auto s = os;
 			s = s.replaceAll(re1, "class " ~ newName);
-			s = s.replaceAll(re2, newName ~ "::");
+			s = s.replaceAll(re2, newName ~ "$1");
 			s = s.replaceAll(re3, `#include "` ~ newName ~  `.class.il"`);
 
 			if (fn.baseName == oldName ~ ".class.il")
