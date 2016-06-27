@@ -1,4 +1,6 @@
 import std.algorithm;
+import std.array;
+import std.exception;
 import std.file;
 import std.path;
 import std.process;
@@ -23,24 +25,31 @@ static:
 		spawnProcess(["git", "commit", "-m", commitMessage]).wait();
 	}
 
+	private string[] fileList()
+	{
+		auto result = execute(["git", "ls-files"]);
+		enforce(result.status == 0);
+		return result.output.splitLines().filter!(line => line.endsWith(".il")).array();
+	}
+
 	@("Rename a method")
 	void renameMethod(string className, string oldName, string newName)
 	{
 		beforeEdit();
 
 		auto reCall = regex(`\b` ~ escapeRE(className ~ "::" ~ oldName) ~ `\b`);
-		foreach (de; dirEntries("", "*.il", SpanMode.shallow))
+		foreach (fn; fileList())
 		{
-			auto os = de.readText();
+			auto os = fn.readText();
 			auto s = os;
 			s = s.replaceAll(reCall, className ~ "::" ~ newName);
-			if (de.baseName == className ~ ".class.il")
+			if (fn.baseName == className ~ ".class.il")
 				s = s.replace(" " ~ oldName ~ "(", " " ~ newName ~ "(");
 			if (os != s)
 			{
-				stderr.writeln(de.name);
-				std.file.write(de.name, s);
-				spawnProcess(["git", "add", de.name]).wait();
+				stderr.writeln(fn);
+				std.file.write(fn, s);
+				spawnProcess(["git", "add", fn]).wait();
 			}
 		}
 
@@ -54,12 +63,12 @@ static:
 
 		auto reCall = regex(`\b` ~ escapeRE(className ~ "::" ~ oldName) ~ `\b`);
 		auto reDecl = regex(`^(\s*\.field .*) ` ~ escapeRE(oldName) ~ `$`);
-		foreach (de; dirEntries("", "*.il", SpanMode.shallow))
+		foreach (fn; fileList())
 		{
-			auto os = de.readText();
+			auto os = fn.readText();
 			auto s = os;
 			s = s.replaceAll(reCall, className ~ "::" ~ newName);
-			if (de.baseName == className ~ ".class.il")
+			if (fn.baseName == className ~ ".class.il")
 			{
 				auto lines = s.splitLines();
 				bool inDecl;
@@ -69,9 +78,9 @@ static:
 			}
 			if (os != s)
 			{
-				stderr.writeln(de.name);
-				std.file.write(de.name, s);
-				spawnProcess(["git", "add", de.name]).wait();
+				stderr.writeln(fn);
+				std.file.write(fn, s);
+				spawnProcess(["git", "add", fn]).wait();
 			}
 		}
 
@@ -87,10 +96,10 @@ static:
 		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `::`);
 		auto re3 = regex(`#include "` ~ escapeRE(oldName) ~ `.class.il"`);
 		auto reDecl = regex(`\b` ~ escapeRE(oldName) ~ `\b`);
-		foreach (de; dirEntries("", "*.il", SpanMode.shallow))
+		foreach (fn; fileList())
 		{
-			auto fn = de.name;
-			auto os = de.readText();
+			auto ofn = fn;
+			auto os = fn.readText();
 			auto s = os;
 			s = s.replaceAll(re1, "class " ~ newName);
 			s = s.replaceAll(re2, newName ~ "::");
@@ -118,10 +127,10 @@ static:
 
 			if (os != s)
 			{
-				if (fn != de.name)
+				if (fn != ofn)
 				{
-					stderr.writeln(de.name, " -> ", fn);
-					spawnProcess(["git", "add", de.name]).wait();
+					stderr.writeln(ofn, " -> ", fn);
+					spawnProcess(["git", "add", ofn]).wait();
 				}
 				else
 					stderr.writeln(fn);
