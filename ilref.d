@@ -37,12 +37,12 @@ static:
 	{
 		beforeEdit();
 
-		auto reCall = regex(`\b` ~ escapeRE(className ~ "::" ~ oldName) ~ `\b`);
+		auto reCall = regex(`\b(` ~ escapeRE(className) ~ `(<.*?>)?::)` ~ escapeRE(oldName) ~ `\b`);
 		foreach (fn; fileList())
 		{
 			auto os = fn.readText();
 			auto s = os;
-			s = s.replaceAll(reCall, className ~ "::" ~ newName);
+			s = s.replaceAll(reCall, "$1" ~ newName);
 			if (fn.baseName == className ~ ".class.il")
 				s = s.replace(" " ~ oldName ~ "(", " " ~ newName ~ "(");
 			if (os != s)
