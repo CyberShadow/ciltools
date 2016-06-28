@@ -18,7 +18,7 @@ struct ILRef
 static:
 	private void beforeEdit()
 	{
-		spawnProcess(["git", "stash", "save"]).wait();
+		spawnProcess(["git", "stash", "save", "ilref automatic stash"]).wait();
 	}
 
 	private void afterEdit(string commitMessage)
