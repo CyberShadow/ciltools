@@ -11,6 +11,7 @@ import ae.sys.file;
 import ae.utils.array;
 import ae.utils.funopt;
 import ae.utils.main;
+import ae.utils.text;
 
 void ilsplit(bool splitMethods, string ilFile)
 {
@@ -35,7 +36,7 @@ void ilsplit(bool splitMethods, string ilFile)
 
 	pushFile(ilFile.baseName.stripExtension(), "main");
 
-	auto lines = readText(ilFile).split("\r\n");
+	auto lines = readText(ilFile).splitAsciiLines();
 
 	foreach (i, line; lines)
 	{
