@@ -94,7 +94,7 @@ static:
 		beforeEdit();
 
 		auto re1 = regex(`\b(class|valuetype|initobj   |newarr    ) ` ~ escapeRE(oldName) ~ `\b`);
-		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `(::|/|\.class\.il")`);
+		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `(::|/|<|\.class\.il")`);
 		auto reDecl = regex(`\b` ~ escapeRE(oldName) ~ `\b`);
 		foreach (fn; fileList())
 		{
