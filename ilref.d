@@ -38,7 +38,7 @@ static:
 	{
 		beforeEdit();
 
-		auto reCall = regex(`\b(` ~ escapeRE(className) ~ `(<.*?>)?::)` ~ escapeRE(oldName) ~ `\b`);
+		auto reCall = regex(`\b(` ~ escapeRE(className) ~ `(<[^>]*>)?::)` ~ escapeRE(oldName) ~ `\b`);
 		auto reDef = regex(` ` ~ escapeRE(oldName) ~ `([(<])`);
 		foreach (fn; fileList())
 		{
@@ -63,13 +63,13 @@ static:
 	{
 		beforeEdit();
 
-		auto reCall = regex(`\b` ~ escapeRE(className ~ "::" ~ oldName) ~ `\b`);
+		auto reCall = regex(`\b(` ~ escapeRE(className) ~ "(<[^>]*>)?::)" ~ escapeRE(oldName) ~ `\b`);
 		auto reDecl = regex(`^(\s*\.field .*) ` ~ escapeRE(oldName) ~ `$`);
 		foreach (fn; fileList())
 		{
 			auto os = fn.readText();
 			auto s = os;
-			s = s.replaceAll(reCall, className ~ "::" ~ newName);
+			s = s.replaceAll(reCall, "$1" ~ newName);
 			if (fn.baseName == className ~ ".class.il")
 			{
 				auto lines = s.splitLines();
