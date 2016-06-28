@@ -8,6 +8,7 @@ import std.regex;
 import std.stdio;
 import std.string;
 
+import ae.sys.file;
 import ae.utils.funopt;
 import ae.utils.main;
 import ae.utils.regex;
@@ -93,8 +94,7 @@ static:
 		beforeEdit();
 
 		auto re1 = regex(`\b(class|valuetype|initobj   |newarr    ) ` ~ escapeRE(oldName) ~ `\b`);
-		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `(::|/)`);
-		auto re3 = regex(`#include "` ~ escapeRE(oldName) ~ `.class.il"`);
+		auto re2 = regex(`\b` ~ escapeRE(oldName) ~ `(::|/|\.class\.il")`);
 		auto reDecl = regex(`\b` ~ escapeRE(oldName) ~ `\b`);
 		foreach (fn; fileList())
 		{
@@ -103,7 +103,12 @@ static:
 			auto s = os;
 			s = s.replaceAll(re1, "$1 " ~ newName);
 			s = s.replaceAll(re2, newName ~ "$1");
-			s = s.replaceAll(re3, `#include "` ~ newName ~  `.class.il"`);
+
+			fn = fn.replace("/" ~ oldName ~ "/", "/" ~ newName ~ "/");
+			if (fn != ofn)
+				remove(ofn);
+			if (fn.dirName.exists && fn.dirName.dirEntries(SpanMode.shallow).empty)
+				rmdir(fn.dirName);
 
 			if (fn.baseName == oldName ~ ".class.il")
 			{
@@ -125,7 +130,7 @@ static:
 				fn = fn.dirName.buildPath(newName ~ ".class.il");
 			}
 
-			if (os != s)
+			if (os != s || fn != ofn)
 			{
 				if (fn != ofn)
 				{
@@ -134,6 +139,7 @@ static:
 				}
 				else
 					stderr.writeln(fn);
+				ensurePathExists(fn);
 				std.file.write(fn, s);
 				spawnProcess(["git", "add", fn]).wait();
 			}
