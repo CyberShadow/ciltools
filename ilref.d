@@ -38,7 +38,7 @@ static:
 	{
 		beforeEdit();
 
-		auto reCall = regex(`\b(` ~ escapeRE(className) ~ `(<[^>]*>)?::)` ~ escapeRE(oldName) ~ `\b`);
+		auto reCall = regex(`\b(` ~ escapeRE(className) ~ `(<([^<>]*<[^<>]*>)*[^>]*>)?::)` ~ escapeRE(oldName) ~ `\b`);
 		auto reDef = regex(` ` ~ escapeRE(oldName) ~ `([(<])`);
 		foreach (fn; fileList())
 		{
@@ -63,7 +63,7 @@ static:
 	{
 		beforeEdit();
 
-		auto reCall = regex(`\b(` ~ escapeRE(className) ~ "(<[^>]*>)?::)" ~ escapeRE(oldName) ~ `\b`);
+		auto reCall = regex(`\b(` ~ escapeRE(className) ~ `(<([^<>]*<[^<>]*>)*[^>]*>)?::)` ~ escapeRE(oldName) ~ `\b`);
 		auto reDecl = regex(`^(\s*\.field .*) ` ~ escapeRE(oldName) ~ `$`);
 		foreach (fn; fileList())
 		{
