@@ -23,7 +23,7 @@ void ilsplit(bool splitMethods, string ilFile)
 		auto fn = name ~ "." ~ type ~ ".il";
 		if (indent != -1)
 		{
-			stack[$-1].f.writeln(`#include "` ~ (stack.length ? stack[$-1].name ~ "/" : "") ~ fn ~ `"`);
+			stack[$-1].f.writeln(" ".replicate(indent), `#include "` ~ (stack.length ? stack[$-1].name ~ "/" : "") ~ fn ~ `"`);
 			stack[$-1].f.flush();
 		}
 		auto path = buildPath(stack.map!(f => f.name).chain(fn.only));
