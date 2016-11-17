@@ -75,7 +75,11 @@ void ilsplit(bool splitMethods, string ilFile)
 			{
 				case ".class":
 				{
-					auto name = declaration.findSplit(" extends ")[0].findSplit("<")[0].split()[$-1];
+					auto name = declaration.findSplit(" extends ")[0];
+					if (name.split()[$-1].startsWith("'<"))
+						name = name.findSplit(">")[2].split()[$-1];
+					else
+						name = name.findSplit("<")[0].split()[$-1];
 					// static const keywords = "public auto ansi sealed beforefieldinit".split();
 					// while (keywords.any!(keyword => l.skipOver(keyword ~ " "))) {}
 					pushFile(name, "class", indent);
