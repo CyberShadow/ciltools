@@ -136,7 +136,7 @@ string getMethodFileName(string declaration)
 	;
 
 	auto args = declaration
-		.replace(re!`marshal\(.*?\)`, ``)
+		.replaceAll(re!`marshal\(.*?\)`, ``)
 		.split("(")[$-1]
 		.findSplit(")")[0]
 		.splitEmpty(", ")
@@ -153,8 +153,12 @@ string getMethodFileName(string declaration)
 unittest
 {
 	string decl;
+
 	decl = `.method private hidebysig static pinvokeimpl("foobar" winapi)  void  MethodName(uint32 a, int32 b, [out] int64& c, [out] int32& d, [in][out] uint8[]  marshal([512]) e, [out] valuetype Foo.Bar.Baz& result) cil managed preservesig`;
 	assert(getMethodFileName(decl) == `MethodName(uint32,int32,int64&,int32&,uint8[],Baz&)`, getMethodFileName(decl));
+
+	decl = `.method public hidebysig static pinvokeimpl("foo_api" as "Foo_Bar_Foo" winapi)  int32  MethodName(native int a, [in][out] uint8[]  marshal([]) b, uint32 c, [in][out] uint8[]  marshal([]) d, uint32 e, [out] uint32& f) cil managed preservesig`;
+	assert(getMethodFileName(decl) == `MethodName(int,uint8[],uint32,uint8[],uint32,uint32&)`, getMethodFileName(decl));
 }
 
 version(unittest) {} else
