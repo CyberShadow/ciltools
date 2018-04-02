@@ -83,39 +83,11 @@ void ilsplit(bool splitMethods, string ilFile)
 			switch (keyword)
 			{
 				case ".class":
-				{
-					auto name = declaration.findSplit(" extends ")[0];
-					if (name.split()[$-1].startsWith("'<"))
-						name = name.findSplit(">")[2].split()[$-1];
-					else
-						name = name.findSplit("<")[0].split()[$-1];
-					// static const keywords = "public auto ansi sealed beforefieldinit".split();
-					// while (keywords.any!(keyword => l.skipOver(keyword ~ " "))) {}
-					pushFile(name, "class", indent);
+					pushFile(getClassFileName(declaration), "class", indent);
 					break;
-				}
 				case ".method":
 					if (splitMethods)
-					{
-						auto name = declaration
-							.findSplit("(")[0]
-							.replace("<", "(")
-							.replace(">", ")")
-							.split()[$-1]
-						;
-						scope(failure) stderr.writeln(declaration);
-						auto args = declaration
-							.split("(")[$-1]
-							.findSplit(")")[0]
-							.splitEmpty(", ")
-							.map!(arg => arg
-							      .findSplit("<")[0]
-							      .split()[$-2]
-							      .split(".")[$-1]
-							);
-						name ~= "(" ~ args.join(",") ~ ")";
-						pushFile(name, "method", indent);
-					}
+						pushFile(getMethodFileName(declaration), "method", indent);
 					break;
 				default:
 					break;
@@ -132,6 +104,42 @@ void ilsplit(bool splitMethods, string ilFile)
 			stack = stack[0..$-1];
 		}
 	}
+}
+
+string getClassFileName(string declaration)
+{
+	auto name = declaration.findSplit(" extends ")[0];
+	if (name.split()[$-1].startsWith("'<"))
+		name = name.findSplit(">")[2].split()[$-1];
+	else
+		name = name.findSplit("<")[0].split()[$-1];
+	// static const keywords = "public auto ansi sealed beforefieldinit".split();
+	// while (keywords.any!(keyword => l.skipOver(keyword ~ " "))) {}
+	return name;
+}
+
+string getMethodFileName(string declaration)
+{
+	auto name = declaration
+		.findSplit("(")[0]
+		.replace("<", "(")
+		.replace(">", ")")
+		.split()[$-1]
+	;
+
+	scope(failure) stderr.writeln(declaration);
+	auto args = declaration
+		.split("(")[$-1]
+		.findSplit(")")[0]
+		.splitEmpty(", ")
+		.map!(arg => arg
+			  .findSplit("<")[0]
+			  .split()[$-2]
+			  .split(".")[$-1]
+		);
+	name ~= "(" ~ args.join(",") ~ ")";
+
+	return name;
 }
 
 mixin main!(funopt!ilsplit);
