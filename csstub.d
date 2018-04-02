@@ -68,7 +68,7 @@ void csstub(string inputDir, string outputDir, string guid="{01234567-89AB-CDEF-
 						if (!aggregates.any!(aggr => s.startsWith(aggr ~ " ")) && s.endsWith(")"))
 							declStart = true;
 						else
-						if (s.isOneOf("get", "set"))
+						if (s.isOneOf("get", "set", "add", "remove"))
 							declStart = true;
 					}
 				}
