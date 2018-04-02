@@ -142,7 +142,7 @@ string getMethodFileName(string declaration)
 		.splitEmpty(", ")
 		.map!(arg => arg
 			  .findSplit("<")[0]
-			  .split()[$-2]
+			  .split()[$>1 ? $-2 : 0]
 			  .split(".")[$-1]
 		);
 	name ~= "(" ~ args.join(",") ~ ")";
@@ -159,6 +159,9 @@ unittest
 
 	decl = `.method public hidebysig static pinvokeimpl("foo_api" as "Foo_Bar_Foo" winapi)  int32  MethodName(native int a, [in][out] uint8[]  marshal([]) b, uint32 c, [in][out] uint8[]  marshal([]) d, uint32 e, [out] uint32& f) cil managed preservesig`;
 	assert(getMethodFileName(decl) == `MethodName(int,uint8[],uint32,uint8[],uint32,uint32&)`, getMethodFileName(decl));
+
+	decl = `.method public hidebysig specialname rtspecialname  instance void  .ctor(!'<name>__T' name, !'<foo>__T' foo, !'<bar>__T' bar, !'<fooBar>__T' fooBar) cil managed`;
+	assert(getMethodFileName(decl) == `.ctor(!',!',!',!')`, getMethodFileName(decl));
 }
 
 version(unittest) {} else
