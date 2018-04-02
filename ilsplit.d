@@ -18,15 +18,24 @@ void ilsplit(bool splitMethods, string ilFile)
 	static struct IncludeFile { File f; string name; int indent; }
 
 	IncludeFile[] stack;
+	bool[string] sawPath;
 	void pushFile(string name, string type, int indent = -1)
 	{
-		auto fn = name ~ "." ~ type ~ ".il";
+		string path, fn, suffix;
+		while (true)
+		{
+			fn = name ~ "." ~ type ~ suffix ~ ".il";
+			path = buildPath(stack.map!(f => f.name).chain(fn.only));
+			if (path !in sawPath)
+				break;
+			suffix ~= "_";
+		}
+		sawPath[path] = true;
 		if (indent != -1)
 		{
 			stack[$-1].f.writeln(" ".replicate(indent), `#include "` ~ (stack.length ? stack[$-1].name ~ "/" : "") ~ fn ~ `"`);
 			stack[$-1].f.flush();
 		}
-		auto path = buildPath(stack.map!(f => f.name).chain(fn.only));
 		stderr.writeln(path);
 		path = ilFile.dirName.buildPath(path);
 		ensurePathExists(path);
