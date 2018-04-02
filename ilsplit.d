@@ -4,6 +4,7 @@ import std.exception;
 import std.file;
 import std.path;
 import std.range;
+import std.regex;
 import std.stdio;
 import std.string;
 
@@ -11,6 +12,7 @@ import ae.sys.file;
 import ae.utils.array;
 import ae.utils.funopt;
 import ae.utils.main;
+import ae.utils.regex;
 import ae.utils.text;
 
 void ilsplit(bool splitMethods, string ilFile)
@@ -121,6 +123,7 @@ string getClassFileName(string declaration)
 string getMethodFileName(string declaration)
 {
 	auto name = declaration
+		.replace(re!`pinvokeimpl\(.*?\)`, ``)
 		.findSplit("(")[0]
 		.replace("<", "(")
 		.replace(">", ")")
@@ -129,6 +132,7 @@ string getMethodFileName(string declaration)
 
 	scope(failure) stderr.writeln(declaration);
 	auto args = declaration
+		.replace(re!`marshal\(.*?\)`, ``)
 		.split("(")[$-1]
 		.findSplit(")")[0]
 		.splitEmpty(", ")
@@ -142,4 +146,12 @@ string getMethodFileName(string declaration)
 	return name;
 }
 
+unittest
+{
+	string decl;
+	decl = `.method private hidebysig static pinvokeimpl("foobar" winapi)  void  MethodName(uint32 a, int32 b, [out] int64& c, [out] int32& d, [in][out] uint8[]  marshal([512]) e, [out] valuetype Foo.Bar.Baz& result) cil managed preservesig`;
+	assert(getMethodFileName(decl) == `MethodName(uint32,int32,int64&,int32&,uint8[],Baz&)`, getMethodFileName(decl));
+}
+
+version(unittest) {} else
 mixin main!(funopt!ilsplit);
