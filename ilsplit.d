@@ -51,6 +51,7 @@ void ilsplit(bool splitMethods, string ilFile)
 
 	foreach (i, line; lines)
 	{
+		scope(failure) stderr.writefln("Error with line %d: %s", i+1, line);
 		auto s = line;
 		int indent;
 		while (s.skipOver(" ")) indent++;
@@ -61,7 +62,7 @@ void ilsplit(bool splitMethods, string ilFile)
 		{
 			auto keyword = s.findSplit(" ")[0];
 			auto declaration = s;
-			auto prefix = " ".replicate(indent + keyword.length + 1);
+			auto prefix = " ".replicate(indent + keyword.length);
 			for (auto j = i+1; ; j++)
 			{
 				if (j == lines.length)
@@ -69,11 +70,11 @@ void ilsplit(bool splitMethods, string ilFile)
 					declaration = null;
 					break;
 				}
+				auto lineJ = lines[j];
+				if (lineJ.skipOver(prefix) && (lineJ.startsWith(" ") || lineJ.startsWith("+")))
+					declaration ~= " " ~ lineJ.strip();
 				else
-				if (lines[j].startsWith(prefix))
-					declaration ~= " " ~ lines[j].strip();
-				else
-				if (lines[j].strip() == "{")
+				if (lineJ.strip() == "{")
 					break;
 				else
 				{
@@ -82,17 +83,20 @@ void ilsplit(bool splitMethods, string ilFile)
 				}
 			}
 
-			switch (keyword)
+			if (declaration)
 			{
-				case ".class":
-					pushFile(getClassFileName(declaration), "class", indent);
-					break;
-				case ".method":
-					if (splitMethods)
-						pushFile(getMethodFileName(declaration), "method", indent);
-					break;
-				default:
-					break;
+				switch (keyword)
+				{
+					case ".class":
+						pushFile(getClassFileName(declaration), "class", indent);
+						break;
+					case ".method":
+						if (splitMethods)
+							pushFile(getMethodFileName(declaration), "method", indent);
+						break;
+					default:
+						break;
+				}
 			}
 		}
 		else
@@ -122,6 +126,7 @@ string getClassFileName(string declaration)
 
 string getMethodFileName(string declaration)
 {
+	scope(failure) stderr.writeln(declaration);
 	auto name = declaration
 		.replace(re!`pinvokeimpl\(.*?\)`, ``)
 		.findSplit("(")[0]
@@ -130,7 +135,6 @@ string getMethodFileName(string declaration)
 		.split()[$-1]
 	;
 
-	scope(failure) stderr.writeln(declaration);
 	auto args = declaration
 		.replace(re!`marshal\(.*?\)`, ``)
 		.split("(")[$-1]
