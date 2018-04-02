@@ -56,6 +56,9 @@ void csstub(string inputDir, string outputDir, string guid="{01234567-89AB-CDEF-
 					if (s.skipOver("where "))
 						continue; // Keep declStart value for this line
 					else
+					if (s.canFind(" = new ")) // dictionaries
+						continue;
+					else
 					{
 						declStart = false;
 
