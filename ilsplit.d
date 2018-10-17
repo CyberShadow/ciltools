@@ -47,7 +47,7 @@ void ilsplit(bool splitMethods, string ilFile)
 
 	pushFile(ilFile.baseName.stripExtension(), "main");
 
-	auto lines = readText(ilFile).splitAsciiLines();
+	auto lines = (cast(string)read(ilFile)).splitAsciiLines();
 
 	foreach (i, line; lines)
 	{
@@ -115,11 +115,11 @@ void ilsplit(bool splitMethods, string ilFile)
 string getClassFileName(string declaration)
 {
 	auto name = declaration.findSplit(" extends ")[0];
-	if (name.split()[$-1].startsWith("'<"))
-		name = name.findSplit(">")[2].split()[$-1];
+	if (name.asciiSplit()[$-1].startsWith("'<"))
+		name = name.findSplit(">")[2].asciiSplit()[$-1];
 	else
-		name = name.findSplit("<")[0].split()[$-1];
-	// static const keywords = "public auto ansi sealed beforefieldinit".split();
+		name = name.findSplit("<")[0].asciiSplit()[$-1];
+	// static const keywords = "public auto ansi sealed beforefieldinit".asciiSplit();
 	// while (keywords.any!(keyword => l.skipOver(keyword ~ " "))) {}
 	return name;
 }
@@ -132,7 +132,7 @@ string getMethodFileName(string declaration)
 		.findSplit("(")[0]
 		.replace("<", "(")
 		.replace(">", ")")
-		.split()[$-1]
+		.asciiSplit()[$-1]
 	;
 
 	auto args = declaration
@@ -142,7 +142,7 @@ string getMethodFileName(string declaration)
 		.splitEmpty(", ")
 		.map!(arg => arg
 			  .findSplit("<")[0]
-			  .split()[$>1 ? $-2 : 0]
+			  .asciiSplit()[$>1 ? $-2 : 0]
 			  .split(".")[$-1]
 		);
 	name ~= "(" ~ args.join(",") ~ ")";
