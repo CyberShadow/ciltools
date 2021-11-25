@@ -31,7 +31,7 @@ void csstub(string inputDir, string outputDir, string guid="{01234567-89AB-CDEF-
 		if (de.extension == ".cs")
 		{
 			auto output = File(target, "wb");
-			auto lines = de.name.readText().split("\r\n");
+			auto lines = de.name.readText().split("\n");
 			int skipIndent; bool skipping, declStart;
 			foreach (i, line; lines)
 			{
@@ -110,9 +110,9 @@ void csstub(string inputDir, string outputDir, string guid="{01234567-89AB-CDEF-
 		if (de.extension == ".csproj")
 		{
 			auto xml = de.name.readText().xmlParse();
-			xml["Project"]["PropertyGroup", 0]["ProjectGuid"][0].tag = guid;
-			xml["Project"]["ItemGroup", 1].children.sort!((a, b) => a.attributes["Include"] < b.attributes["Include"]);
-			xml["Project"]["ItemGroup", 1].children.each!(child => child.attributes["Include"] = sanitizeFileName(child.attributes["Include"]));
+			// xml["Project"]["PropertyGroup", 0]["ProjectGuid"][0].tag = guid;
+			// xml["Project"]["ItemGroup", 1].children.sort!((a, b) => a.attributes["Include"] < b.attributes["Include"]);
+			// xml["Project"]["ItemGroup", 1].children.each!(child => child.attributes["Include"] = sanitizeFileName(child.attributes["Include"]));
 
 			CustomXmlWriter!(StringBuilder, CustomXmlFormatter!(' ', 2)) writer;
 			xml.writeTo(writer);
