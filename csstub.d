@@ -65,7 +65,7 @@ void csstub(string inputDir, string outputDir, string guid="{01234567-89AB-CDEF-
 						static immutable attributes = ["public", "private", "internal", "static", "sealed"];
 						while (attributes.any!(attr => s.skipOver(attr ~ " "))) {}
 						static immutable aggregates = ["class", "struct", "enum"];
-						if (!aggregates.any!(aggr => s.startsWith(aggr ~ " ")) && s.endsWith(")"))
+						if (!aggregates.any!(aggr => s.startsWith(aggr ~ " ")) && (s.endsWith(")") || s.canFind(") where ")))
 							declStart = true;
 						else
 						if (s.isOneOf("get", "set", "add", "remove"))
