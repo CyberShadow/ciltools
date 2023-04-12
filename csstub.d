@@ -74,7 +74,7 @@ void csstub(string inputDir, string outputDir, string guid="{01234567-89AB-CDEF-
 				}
 				else
 				{
-					if (s == "}" && indent == skipIndent)
+					if (s.among("}", "};") && indent == skipIndent)
 					{
 						output.writeln("\t".replicate(indent), "#endif");
 						output.writeln("\t".replicate(indent), "\tthrow null;");
