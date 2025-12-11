@@ -13,26 +13,26 @@ import ae.utils.funopt;
 import ae.utils.main;
 import ae.utils.regex;
 
+private void beforeEdit()
+{
+	spawnProcess(["git", "stash", "save", "ilref automatic stash"]).wait();
+}
+
+private void afterEdit(string commitMessage)
+{
+	spawnProcess(["git", "commit", "-m", commitMessage]).wait();
+}
+
+private string[] fileList()
+{
+	auto result = execute(["git", "ls-files"]);
+	enforce(result.status == 0);
+	return result.output.splitLines().filter!(line => line.endsWith(".il")).array();
+}
+
 struct ILRef
 {
 static:
-	private void beforeEdit()
-	{
-		spawnProcess(["git", "stash", "save", "ilref automatic stash"]).wait();
-	}
-
-	private void afterEdit(string commitMessage)
-	{
-		spawnProcess(["git", "commit", "-m", commitMessage]).wait();
-	}
-
-	private string[] fileList()
-	{
-		auto result = execute(["git", "ls-files"]);
-		enforce(result.status == 0);
-		return result.output.splitLines().filter!(line => line.endsWith(".il")).array();
-	}
-
 	@("Rename a method")
 	void renameMethod(string className, string oldName, string newName)
 	{
